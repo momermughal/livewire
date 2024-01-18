@@ -3,6 +3,7 @@
 namespace App\Livewire\post;
 
 use App\Models\Comment;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use App\Models\Post as PostModel;
 
@@ -21,19 +22,22 @@ class Post extends Component
         return redirect()->to('/posts');
     }
 
-    public function postComment()
+    public function postComment($id)
     {
-        Comment::create(
-            $this->only(['title', 'content'])
-        );
-
-//        return redirect('/posts')
-//            ->with('status', 'Post successfully created.');
+//        dd($id);
+        Comment::create([
+            'body' => $this->title,
+            'post_id' => $id,
+            'user_id' => Auth::id(),
+                ]);
+        $this->viewPost($id, 'view');
     }
 
     public function viewPost($id, $action)
     {
-        $this->data['post'] =  PostModel::with('user')->find($id);
+        $this->data['post'] =  PostModel::with(['user', 'comments' => function ($query) {
+            $query->orderBy('created_at', 'DESC');
+        }] )->find($id);
         $this->_action = $action;
     }
 
